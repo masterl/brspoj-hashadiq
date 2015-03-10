@@ -5,6 +5,15 @@ http://br.spoj.com/problems/HASHADIQ/
 #### Warning:
 I didn't care about wrong input since the system only provides valid input
 
+Spoj says:
+Time limit:   0.670s
+"Time limit exceeded"
+
+Linux time says:
+time ./bin/hashadiq < entrada.txt  0,00s user 0,00s system 5% cpu 0,026 total
+
+I call bullshit...
+Will improve later and check again.
 
 (Will translate soon)
 
