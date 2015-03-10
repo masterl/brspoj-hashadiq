@@ -2,6 +2,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <list>
 
 using namespace std;
 
@@ -70,8 +71,8 @@ class PersonManager
             string args = line.substr(first_space+1);
             string function = line.erase(first_space);
 
-            cout << "\nfunction: [" << function << "]" << endl;
-            cout << "args: [" << args << "]" << endl;
+            // cout << "\nfunction: [" << function << "]" << endl;
+            // cout << "args: [" << args << "]" << endl;
 
             if(!function.compare("add"))
             {
@@ -162,12 +163,12 @@ class PersonManager
         {
             if((id < 0) || (id > max_elements) || (id_table[id] == NULL))
             {
-                cout << "ID " << id << " nao existente" << endl;
+                cout << "ID " << id << " nao existente." << endl;
                 return;
             }
 
-            cout << "id_table: " << id_table[id].get() << endl;
-            id_table[id]->print();
+            // cout << "id_table: " << id_table[id].get() << endl;
+            //id_table[id]->print();
 
             remove_from_fn_table(id_table[id],hash(id_table[id]->first_name));
             remove_from_ln_table(id_table[id],hash(id_table[id]->last_name));
@@ -200,10 +201,204 @@ class PersonManager
         */
         void query(const string &query_str)
         {
-            cout << "Entrou na query" << endl;
+            string fn, ln, bd, pn;
+
+            extract_tags(fn,ln,bd,pn,query_str);
+
+            std::tuple<string,string,string,string> tags = make_tuple(fn,ln,bd,pn);
+
+            // cout    << "\nfn: " << fn
+            //         << "\nln: " << ln
+            //         << "\nbd: " << bd
+            //         << "\npn: " << pn << endl << query_str << endl;
+
+            std::list<int> ids;
+            if(fn.size() > 0)
+            {
+                search_fn_table(ids,tags);
+            }
+
+            if(ln.size() > 0)
+            {
+                search_ln_table(ids,tags);
+            }
+
+            if(bd.size() > 0)
+            {
+                search_bd_table(ids,tags);
+            }
+
+            if(pn.size() > 0)
+            {
+                search_pn_table(ids,tags);
+            }
+
+            list<int>::iterator it = ids.begin();
+            while(it != ids.end())
+            {
+                cout << *it;
+                ++it;
+                if(it != ids.end())
+                {
+                    cout << " ";
+                }
+            }
+
+            cout << endl;
         }
 
-        
+        void search_fn_table(list<int> &ids,tuple<string,string,string,string> &tags)
+        {
+            unsigned int hash_number = hash(get<0>(tags));
+            Person_ptr people = fn_table[hash_number];
+            
+            while(people != NULL)
+            {
+                if(fields_match(people,tags))
+                {
+                    insert_id_in_list(ids,people->id);
+                }
+                people = people->fn_collision;
+            }
+        }
+
+        void search_ln_table(list<int> &ids,tuple<string,string,string,string> &tags)
+        {
+            unsigned int hash_number = hash(get<1>(tags));
+            Person_ptr people = ln_table[hash_number];
+            
+            while(people != NULL)
+            {
+                if(fields_match(people,tags))
+                {
+                    insert_id_in_list(ids,people->id);
+                }
+                people = people->ln_collision;
+            }
+        }
+
+        void search_bd_table(list<int> &ids,tuple<string,string,string,string> &tags)
+        {
+            unsigned int hash_number = hash(get<2>(tags));
+            Person_ptr people = birth_table[hash_number];
+            
+            while(people != NULL)
+            {
+                if(fields_match(people,tags))
+                {
+                    insert_id_in_list(ids,people->id);
+                }
+                people = people->birth_collision;
+            }
+        }
+
+        void search_pn_table(list<int> &ids,tuple<string,string,string,string> &tags)
+        {
+            unsigned int hash_number = hash(get<3>(tags));
+            Person_ptr people = phone_table[hash_number];
+            
+            while(people != NULL)
+            {
+                if(fields_match(people,tags))
+                {
+                    insert_id_in_list(ids,people->id);
+                }
+                people = people->phone_collision;
+            }
+        }
+
+        bool fields_match(Person_ptr person,tuple<string,string,string,string> &tags)
+        {
+            if((get<0>(tags).size() > 0) && (get<0>(tags).compare(person->first_name)))
+            {
+                return false;
+            }
+
+            if((get<1>(tags).size() > 0) && (get<1>(tags).compare(person->last_name)))
+            {
+                return false;
+            }
+
+            if((get<2>(tags).size() > 0) && (get<2>(tags).compare(person->birthday)))
+            {
+                return false;
+            }
+
+            if((get<3>(tags).size() > 0) && (get<3>(tags).compare(person->phone)))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        void insert_id_in_list(list<int> &ids,const int id)
+        {
+            list<int>::iterator pos;
+            
+            for(pos = ids.begin(); (pos != ids.end()) && ((*pos) < id); ++pos);
+
+            if(pos == ids.end())
+            {
+                ids.push_back(id);
+            }
+            else if((*pos) != id)
+            {
+                ids.insert(pos,id);
+            }
+        }
+
+        void extract_tags(string &fn,string &ln,string &bd,string &pn,string query_str)
+        {
+            unsigned int pos;
+            string tag;
+            string *value;
+            while(query_str.size() > 0)
+            {
+                for(unsigned int i = 0; i < query_str.size(); ++i)
+                {
+                    if(query_str[i] == ':')
+                    {
+                        pos = i;
+                        break;
+                    }
+                    tag += query_str[i];
+                }
+
+                //cout << "tag = [" << tag << "]" << endl;
+                if(!tag.compare("fn"))
+                {
+                    value = &fn;
+                }
+                else if(!tag.compare("ln"))
+                {
+                    value = &ln;
+                }
+                else if(!tag.compare("bd"))
+                {
+                    value = &bd;
+                }
+                else if(!tag.compare("pn"))
+                {
+                    value = &pn;
+                }
+                else
+                {
+                    value = &tag;
+                }
+                tag.clear();
+
+                for(pos = pos+1; pos < query_str.size(); ++pos)
+                {
+                    if(query_str[pos] == ' ')
+                    {
+                        break;
+                    }
+                    (*value) += query_str[pos];
+                }
+                query_str.erase(0,pos+1);
+            }
+        }
 
         void insert_on_fn_table(Person_ptr person,unsigned int hash_number)
         {
@@ -247,16 +442,16 @@ class PersonManager
 
         void remove_from_fn_table(Person_ptr person,unsigned int hash_number)
         {
-            cout << "remove_from_fn_table [" << hash_number << "]" << endl;
+            // cout << "remove_from_fn_table [" << hash_number << "]" << endl;
             if(fn_table[hash_number] != NULL)
             {
-                cout << "found" << endl;
+                // cout << "found" << endl;
                 Person_ptr last_person;
                 Person_ptr people_itr = fn_table[hash_number];
                 do
                 {
-                    cout    << "people id: " << people_itr->id
-                            << "\nperson id: " << person->id << endl;
+                    // cout    << "people id: " << people_itr->id
+                    //         << "\nperson id: " << person->id << endl;
                     if(people_itr->id == person->id)
                     {
                         break;
@@ -264,20 +459,20 @@ class PersonManager
                     last_person = people_itr;
                     people_itr = people_itr->fn_collision;
                 }while(people_itr != NULL);
-                cout << "people_itr " << people_itr.get() << endl;
+                // cout << "people_itr " << people_itr.get() << endl;
 
-                cout << "removing..." << endl;
+                // cout << "removing..." << endl;
                 if(last_person != NULL)
                 //if((last_person != NULL) && (people_itr != NULL))
                 {
-                    cout << "last person present" << endl;
-                    last_person->print();
+                    // cout << "last person present" << endl;
+                    // last_person->print();
                     last_person->fn_collision = people_itr->fn_collision;
                     //people_itr.reset();
                 }
                 else if(fn_table[hash_number]->fn_collision != NULL)
                 {
-                    cout << "single element" << endl;
+                    // cout << "single element" << endl;
                     fn_table[hash_number] = fn_table[hash_number]->fn_collision;
                 }
             }
@@ -285,16 +480,16 @@ class PersonManager
 
         void remove_from_ln_table(Person_ptr person,unsigned int hash_number)
         {
-            cout << "remove_from_ln_table [" << hash_number << "]" << endl;
+            // cout << "remove_from_ln_table [" << hash_number << "]" << endl;
             if(ln_table[hash_number] != NULL)
             {
-                cout << "found" << endl;
+                // cout << "found" << endl;
                 Person_ptr last_person;
                 Person_ptr people_itr = ln_table[hash_number];
                 do
                 {
-                    cout    << "people id: " << people_itr->id
-                            << "\nperson id: " << person->id << endl;
+                    // cout    << "people id: " << people_itr->id
+                    //         << "\nperson id: " << person->id << endl;
                     if(people_itr->id == person->id)
                     {
                         break;
@@ -302,20 +497,20 @@ class PersonManager
                     last_person = people_itr;
                     people_itr = people_itr->ln_collision;
                 }while(people_itr != NULL);
-                cout << "people_itr " << people_itr.get() << endl;
+                // cout << "people_itr " << people_itr.get() << endl;
 
-                cout << "removing..." << endl;
+                // cout << "removing..." << endl;
                 if(last_person != NULL)
                 //if((last_person != NULL) && (people_itr != NULL))
                 {
-                    cout << "last person present" << endl;
-                    last_person->print();
+                    // cout << "last person present" << endl;
+                    // last_person->print();
                     last_person->ln_collision = people_itr->ln_collision;
                     //people_itr.reset();
                 }
                 else if(ln_table[hash_number]->ln_collision != NULL)
                 {
-                    cout << "single element" << endl;
+                    // cout << "single element" << endl;
                     ln_table[hash_number] = ln_table[hash_number]->ln_collision;
                 }
             }
@@ -323,16 +518,16 @@ class PersonManager
 
         void remove_from_birth_table(Person_ptr person,unsigned int hash_number)
         {
-            cout << "remove_from_birth_table [" << hash_number << "]" << endl;
+            // cout << "remove_from_birth_table [" << hash_number << "]" << endl;
             if(birth_table[hash_number] != NULL)
             {
-                cout << "found" << endl;
+                // cout << "found" << endl;
                 Person_ptr last_person;
                 Person_ptr people_itr = birth_table[hash_number];
                 do
                 {
-                    cout    << "people id: " << people_itr->id
-                            << "\nperson id: " << person->id << endl;
+                    // cout    << "people id: " << people_itr->id
+                    //         << "\nperson id: " << person->id << endl;
                     if(people_itr->id == person->id)
                     {
                         break;
@@ -340,20 +535,20 @@ class PersonManager
                     last_person = people_itr;
                     people_itr = people_itr->birth_collision;
                 }while(people_itr != NULL);
-                cout << "people_itr " << people_itr.get() << endl;
+                // cout << "people_itr " << people_itr.get() << endl;
 
-                cout << "removing..." << endl;
+                // cout << "removing..." << endl;
                 if(last_person != NULL)
                 //if((last_person != NULL) && (people_itr != NULL))
                 {
-                    cout << "last person present" << endl;
-                    last_person->print();
+                    // cout << "last person present" << endl;
+                    // last_person->print();
                     last_person->birth_collision = people_itr->birth_collision;
                     //people_itr.reset();
                 }
                 else if(birth_table[hash_number]->birth_collision != NULL)
                 {
-                    cout << "single element" << endl;
+                    // cout << "single element" << endl;
                     birth_table[hash_number] = birth_table[hash_number]->birth_collision;
                 }
             }
@@ -361,16 +556,16 @@ class PersonManager
 
         void remove_from_phone_table(Person_ptr person,unsigned int hash_number)
         {
-            cout << "remove_from_phone_table [" << hash_number << "]" << endl;
+            //cout << "remove_from_phone_table [" << hash_number << "]" << endl;
             if(phone_table[hash_number] != NULL)
             {
-                cout << "found" << endl;
+                //cout << "found" << endl;
                 Person_ptr last_person;
                 Person_ptr people_itr = phone_table[hash_number];
                 do
                 {
-                    cout    << "people id: " << people_itr->id
-                            << "\nperson id: " << person->id << endl;
+                    // cout    << "people id: " << people_itr->id
+                    //         << "\nperson id: " << person->id << endl;
                     if(people_itr->id == person->id)
                     {
                         break;
@@ -378,20 +573,20 @@ class PersonManager
                     last_person = people_itr;
                     people_itr = people_itr->phone_collision;
                 }while(people_itr != NULL);
-                cout << "people_itr " << people_itr.get() << endl;
+                //cout << "people_itr " << people_itr.get() << endl;
 
-                cout << "removing..." << endl;
+                //cout << "removing..." << endl;
                 if(last_person != NULL)
                 //if((last_person != NULL) && (people_itr != NULL))
                 {
-                    cout << "last person present" << endl;
-                    last_person->print();
+                    // cout << "last person present" << endl;
+                    // last_person->print();
                     last_person->phone_collision = people_itr->phone_collision;
                     //people_itr.reset();
                 }
                 else if(phone_table[hash_number]->phone_collision != NULL)
                 {
-                    cout << "single element" << endl;
+                    // cout << "single element" << endl;
                     phone_table[hash_number] = phone_table[hash_number]->phone_collision;
                 }
             }
@@ -427,7 +622,7 @@ class PersonManager
                 ++mult;
             }
 
-            cout << "hashing [" << str << "] - [" << (hash_number % max_elements) << "]" << endl;
+            //cout << "hashing [" << str << "] - [" << (hash_number % max_elements) << "]" << endl;
 
             return hash_number % max_elements;
         }
