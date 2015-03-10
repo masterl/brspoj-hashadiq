@@ -1,6 +1,10 @@
-#### Solution for SPOJ "HASHADIQ" problem
+### Solution for SPOJ "HASHADIQ" problem
 
 http://br.spoj.com/problems/HASHADIQ/
+
+#### Warning:
+I didn't care about wrong input since the system only provides valid input
+
 
 (Will translate soon)
 
