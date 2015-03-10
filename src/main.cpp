@@ -34,13 +34,18 @@ struct Person
 };
 
 typedef std::shared_ptr<Person> Person_ptr;
+typedef std::vector<Person_ptr> HashTable;
+
 
 class PersonManager
 {
     public:
         PersonManager(void):
-            max_elements(3989),
-            people(max_elements)
+            max_elements(503),
+            fn_table(max_elements),
+            ln_table(max_elements),
+            birth_table(max_elements),
+            phone_table(max_elements)
         {
         }
         void add(int id,
@@ -51,11 +56,27 @@ class PersonManager
         {
             std::shared_ptr<Person> person(new Person(id,first_name,last_name,birthday,phone));
 
+            unsigned int hash_number = hash(first_name);
 
+            insert_on_table(fn_table,person,hash_number);
+
+            hash_number = hash(last_name);
+            insert_on_table(ln_table,person,hash_number);
+
+            hash_number = hash(birthday);
+            insert_on_table(birth_table,person,hash_number);
+
+            hash_number = hash(phone);
+            insert_on_table(phone_table,person,hash_number);
         }
     private:
         const unsigned int max_elements; // Large prime number chosen
-        std::vector<Person_ptr> people;
+        HashTable fn_table;
+        HashTable ln_table;
+        HashTable birth_table;
+        HashTable phone_table;
+
+
         unsigned int hash(const std::string &str)
         {
             unsigned int hash_number = 0;
@@ -68,6 +89,16 @@ class PersonManager
             }
 
             return hash_number % max_elements;
+        }
+
+        void insert_on_table(HashTable &table,Person_ptr person,unsigned int hash_number)
+        {
+            if(table[hash_number] != NULL)
+            {
+                person->collision = table[hash_number];
+            }
+
+            table[hash_number] = person;
         }
 };
 
