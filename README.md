@@ -6,14 +6,15 @@ http://br.spoj.com/problems/HASHADIQ/
 I didn't care about wrong input since the system only provides valid input
 
 Spoj says:
-Time limit:   0.670s
+`Time limit:   0.670s`
+
 "Time limit exceeded"
 
 Linux time says:
-time ./bin/hashadiq < entrada.txt  0,00s user 0,00s system 5% cpu 0,026 total
+`time ./bin/hashadiq < entrada.txt  0,00s user 0,00s system 5% cpu 0,026 total`
 
 I call bullshit...
-Will improve later and check again.
+Will improve more later and check again.
 
 (Will translate soon)
 
@@ -31,17 +32,17 @@ A entrada será feita por 4 comandos: add, del, info e query. A execução é en
 O comando ''add'' recebe e armazena todos dados do individuo, e retorna erro se já existir individuo com mesmo identificador.
 
 
-add <id> <first_name> <last_name> <birtday> <phone_number>
+add \<id\> \<first_name\> \<last_name\> \<birthday\> \<phone_number\>
 
 O comando ''del'' remove todos dados relacionados a um determinado identificador, e retorna erro se não existir individuo com o identificador fornecido.
 
 
-del <id>
+del \<id\>
 
 O comando ''info'' imprime todos dados de um determinado identificador, e retorna erro se não existir individuo com o identificador fornecido.
 
 
-info <id>
+info \<id\>
 
 O comando ''query'' realiza uma busca nos indivíduos cadastrados. Conforme as seguintes tags de busca:
 
@@ -51,7 +52,7 @@ bd: Data de nascimento
 pn: Telefone
  
 
-query (<tag>:<valor>)+
+query (\<tag\>:\<valor\>)+
 
 Saída 
 
@@ -64,7 +65,9 @@ O comando ''info'' imprime todos dados de um determinado identificador, ou impri
 O comando ''query'' retorna os identificadores que respeitem os critérios da busca na ordem crescente separados por espaços. Em caso de não existir nenhum individuo que respeite a busca, uma linha vazia deve ser impressa.
 
 Exemplo
+
 Entrada:
+```
 add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190
 add 123 Joao Souza 11/10/2000 103-99
 add 09 Andre Matias 01/01/1970 +55-21-0190-0190
@@ -81,8 +84,9 @@ query fn:XXX
 query bd:01/01/1960 fn:Seu
 info 99
 del 99
-
+```
 Saída:
+```
 ID 123 ja cadastrado.
 99 100 123
 99 100
@@ -92,3 +96,4 @@ Seu Beirada 01/01/1960 +55-21-9999-9999
 100
 ID 99 nao existente.
 ID 99 nao existente.
+```
