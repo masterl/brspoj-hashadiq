@@ -50,6 +50,16 @@ class PersonManager
         {
         }
 
+        void execute(std::string line)
+        {
+            unsigned int first_space = line.find(" ");
+            std::string args = line.substr(first_space+1);
+            std::string function = line.erase(first_space);
+
+            std::cout << "function: [" << function << "]" << std::endl;
+            std::cout << "args: [" << args << "]" << std::endl;
+        }
+
         /*  somente imprime na saída quando ocorre erro na inserção de um individuo,
             ocorrida na inserção de individuo com identificador duplicado.
         */
@@ -119,6 +129,19 @@ class PersonManager
                       << id_table[id]->birthday << " "
                       << id_table[id]->phone << std::endl;
         }
+
+        /*  O comando ''query'' realiza uma busca nos indivíduos cadastrados.
+            Conforme as seguintes tags de busca:
+
+            fn: Primeiro nome
+            ln: Ultimo nome
+            bd: Data de nascimento
+            pn: Telefone
+        */
+        void query(const std::string &query_str)
+        {
+            std::cout << "Entrou na query" << std::endl;
+        }
     private:
         const unsigned int max_elements; // Large prime number chosen
         HashTable id_table;
@@ -183,5 +206,19 @@ class PersonManager
 
 int main(void)
 {
+    char input[2048];
+    unsigned int chars_read;
+    PersonManager manager;
+
+    do
+    {
+        std::cin.getline(input,2048);
+        chars_read = std::cin.gcount();
+        input[chars_read] = '\0';
+        if(chars_read > 0)
+        {
+            manager.execute(input);
+        }
+    }while(chars_read > 0);
     return 0;
 }
