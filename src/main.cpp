@@ -105,6 +105,20 @@ class PersonManager
             remove_from_table(phone_table,id_table[id],hash(id_table[id]->phone));
             id_table[id].reset();
         }
+
+        void info(int id)
+        {
+            if((id < 0) || (id > max_elements) || (id_table[id] == NULL))
+            {
+                std::cout << "ID " << id << " nao existente." << std::endl;
+                return;
+            }
+
+            std::cout << id_table[id]->first_name << " "
+                      << id_table[id]->last_name << " "
+                      << id_table[id]->birthday << " "
+                      << id_table[id]->phone << std::endl;
+        }
     private:
         const unsigned int max_elements; // Large prime number chosen
         HashTable id_table;
