@@ -42,19 +42,37 @@ class PersonManager
     public:
         PersonManager(void):
             max_elements(503),
+            id_table(max_elements),
             fn_table(max_elements),
             ln_table(max_elements),
             birth_table(max_elements),
             phone_table(max_elements)
         {
         }
+
+        /*  somente imprime na saída quando ocorre erro na inserção de um individuo,
+            ocorrida na inserção de individuo com identificador duplicado.
+        */
         void add(int id,
             const std::string &first_name,
             const std::string &last_name,
             const std::string &birthday,
             const std::string &phone)
         {
+            if((id < 0) || (id > max_elements))
+            {
+                std::cout << "invalid id" << std::endl;
+                return;
+            }
+
+            if(id_table[id] != NULL)
+            {
+                std::cout << "ID " << id << " ja cadastrado." << std::endl;
+            }
+
             std::shared_ptr<Person> person(new Person(id,first_name,last_name,birthday,phone));
+
+            id_table[id] = person;
 
             unsigned int hash_number = hash(first_name);
 
@@ -69,8 +87,27 @@ class PersonManager
             hash_number = hash(phone);
             insert_on_table(phone_table,person,hash_number);
         }
+
+        /*  O comando ''del'' remove todos dados relacionados a um determinado identificador,
+            e retorna erro se não existir individuo com o identificador fornecido.
+        */
+        void del(int id)
+        {
+            if((id < 0) || (id > max_elements) || (id_table[id] == NULL))
+            {
+                std::cout << "ID " << id << " nao existente" << std::endl;
+                return;
+            }
+
+            remove_from_table(fn_table,id_table[id],hash(id_table[id]->first_name));
+            remove_from_table(ln_table,id_table[id],hash(id_table[id]->last_name));
+            remove_from_table(birth_table,id_table[id],hash(id_table[id]->birthday));
+            remove_from_table(phone_table,id_table[id],hash(id_table[id]->phone));
+            id_table[id].reset();
+        }
     private:
         const unsigned int max_elements; // Large prime number chosen
+        HashTable id_table;
         HashTable fn_table;
         HashTable ln_table;
         HashTable birth_table;
@@ -99,6 +136,34 @@ class PersonManager
             }
 
             table[hash_number] = person;
+        }
+
+        void remove_from_table(HashTable &table,Person_ptr person,unsigned int hash_number)
+        {
+            if(table[hash_number] != NULL)
+            {
+                Person_ptr last_person;
+                Person_ptr people_itr = table[hash_number];
+                do
+                {
+                    if(people_itr->id == person->id)
+                    {
+                        break;
+                    }
+                    last_person = people_itr;
+                    people_itr = people_itr->collision;
+                }while(people_itr != NULL);
+
+                if(last_person != NULL)
+                {
+                    last_person->collision = people_itr->collision;
+                    people_itr.reset();
+                }
+                else
+                {
+                    table[hash_number] = table[hash_number]->collision;
+                }
+            }
         }
 };
 
